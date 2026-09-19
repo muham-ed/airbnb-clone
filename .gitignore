@@ -1,0 +1,44 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Environment variables - CRITICAL
+.env
+.env.local
+.env.*.local
+*/backend/.env
+*/mobile/.env
+*/admin-dashboard/.env
+
+# Build outputs
+dist/
+build/
+*/dist/
+*/build/
+
+# Prisma
+backend/prisma/migrations/*.sql-journal
+backend/prisma/*.db
+
+# Logs
+npm-debug.log*
+logs/
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Flutter
+mobile/.dart_tool/
+mobile/.flutter-plugins
+mobile/build/
+
+# Docker
+postgres_data/
+
+# Coverage
+coverage/
+.nyc_output/

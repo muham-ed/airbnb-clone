@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  avatar    String?
+  isHost    Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings  Listing[]
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model Listing {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  location    String
+  images      String[]
+  amenities   String[]
+  available   Boolean  @default(true)
+  hostId      String
+  host        User     @relation(fields: [hostId], references: [id], onDelete: Cascade)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  bookings    Booking[]
+  reviews     Review[]
+}
+
+model Booking {
+  id          String   @id @default(uuid())
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  guestId     String
+  guest       User     @relation(fields: [guestId], references: [id])
+  startDate   DateTime
+  endDate     DateTime
+  totalPrice  Float
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  review      Review?
+}
+
+model Review {
+  id          String   @id @default(uuid())
+  rating      Int
+  comment     String
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  listingId   String
+  listing     Listing  @relation(fields: [listingId], references: [id])
+  bookingId   String   @unique
+  booking     Booking  @relation(fields: [bookingId], references: [id])
+  createdAt   DateTime @default(now())
+}

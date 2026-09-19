@@ -1,0 +1,33 @@
+services:
+  airbnb_db:
+    image: postgres:15
+    container_name: airbnb_db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_DB: airbnb_clone
+    ports:
+      - "5435:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  airbnb_redis:
+    image: redis:7-alpine
+    container_name: airbnb_redis
+    ports:
+      - "6379:6379"
+
+  airbnb_backend:
+    build: ../backend
+    container_name: airbnb_backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - airbnb_db
+      - airbnb_redis
+    environment:
+      DATABASE_URL: "postgresql://admin:admin123@airbnb_db:5432/airbnb_clone?schema=public"
+      REDIS_URL: "redis://airbnb_redis:6379"
+
+volumes:
+  postgres_data:
