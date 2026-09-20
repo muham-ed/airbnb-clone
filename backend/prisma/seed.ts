@@ -18,8 +18,19 @@ async function main() {
     },
   });
 
-  // 2. Create Listing only if it doesn't exist
-  // ملاحظة: بما أن Prisma لا تدعم upsert على الحقول غير الفريدة، سنستخدم منطقاً ذكياً
+  // 2. Upsert Guest (إضافة الـ Guest كما طلبت)
+  const guest = await prisma.user.upsert({
+    where: { email: 'guest@example.com' },
+    update: {},
+    create: {
+      email: 'guest@example.com',
+      name: 'Jane Guest',
+      password: hashedPassword,
+      role: 'GUEST',
+    },
+  });
+
+  // 3. Create Listing
   const listingData = {
     title: 'Luxury Villa in Cairo',
     description: 'A beautiful villa with a pool and great view.',
@@ -29,25 +40,12 @@ async function main() {
     hostId: host.id,
   };
 
-  const existingListing = await prisma.listing.findFirst({
-    where: { title: listingData.title }
-  });
-
+  const existingListing = await prisma.listing.findFirst({ where: { title: listingData.title } });
   if (!existingListing) {
     await prisma.listing.create({ data: listingData });
-    console.log('🏠 Listing created');
-  } else {
-    console.log('🏠 Listing already exists, skipping');
   }
 
-  console.log('✅ Seeding completed successfully!');
+  console.log('✅ Seeding completed! (Host, Guest, and Listing are ready)');
 }
 
-main()
-  .catch((e) => {
-    console.error(e);
-    process.exit(1);
-  })
-  .finally(async () => {
-    await prisma.$disconnect();
-  });
+main().catch(e => { console.error(e); process.exit(1); }).finally(async () => { await prisma.$disconnect(); });

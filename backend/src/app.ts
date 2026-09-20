@@ -14,9 +14,9 @@ const app = express();
 app.use(helmet());
 app.use(cors());
 
-// استثناء الـ Webhook من الـ JSON body parser لأنه يحتاج raw body
+// استثناء الـ Webhook من الـ JSON body parser والـ Rate Limit
 app.use((req, res, next) => {
-  if (req.originalUrl === '/api/v1/payments/webhook') {
+  if (req.path === '/api/v1/payments/webhook') {
     next();
   } else {
     express.json()(req, res, next);
@@ -26,22 +26,16 @@ app.use((req, res, next) => {
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 100,
+  skip: (req) => req.path === '/v1/payments/webhook' || req.path === '/health',
   message: 'لقد تجاوزت الحد المسموح به من الطلبات، يرجى المحاولة لاحقاً'
 });
 
-// Health Check
 app.get('/health', (req, res) => {
-  res.status(200).json({
-    status: 'OK',
-    timestamp: new Date().toISOString(),
-    service: 'airbnb-clone-backend'
-  });
+  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
-// تطبيق الـ Rate Limit على المسارات الفعلية
 app.use('/api', apiLimiter);
 
-// Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/listings', listingRoutes);
 app.use('/api/v1/bookings', bookingRoutes);

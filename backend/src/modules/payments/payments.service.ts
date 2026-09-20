@@ -1,31 +1,40 @@
 import Stripe from 'stripe';
 import prisma from '../../shared/config/database';
 import { AppError } from '../../shared/utils/app-error';
+import Redis from 'ioredis';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-01-27' as any, // استخدام أحدث إصدار متاح
+  apiVersion: '2024-12-18.acacia', // تحديث لنسخة مستقرة ومعروفة
 });
 
+const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
+
 export class PaymentsService {
-  async createCheckoutSession(bookingId: string) {
-    const booking = await prisma.booking.findUnique({
-      where: { id: bookingId },
-      include: { listing: true },
+  async createCheckoutSession(bookingId: string, userId: string) {
+    const booking = await prisma.booking.findFirst({
+      where: {
+        id: bookingId,
+        guestId: userId // حماية ضد IDOR
+      },
+      include: {
+        listing: true,
+        guest: { select: { email: true } } // جلب البريد الإلكتروني للمستخدم
+      },
     });
 
     if (!booking) {
-      throw new AppError('الحجز غير موجود', 404);
+      throw new AppError('الحجز غير موجود أو لا تملك صلاحية الوصول إليه', 404, 'NOT_FOUND');
     }
 
     if (booking.status !== 'pending') {
-      throw new AppError('هذا الحجز لا يمكن دفعه الآن', 400);
+      throw new AppError('هذا الحجز لا يمكن دفعه الآن', 400, 'INVALID_BOOKING_STATUS');
     }
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       success_url: `${process.env.FRONTEND_URL}/bookings/${bookingId}?success=true`,
       cancel_url: `${process.env.FRONTEND_URL}/bookings/${bookingId}?canceled=true`,
-      customer_email: (booking as any).guest?.email, // سيتم تحسينها لاحقاً
+      customer_email: booking.guest.email,
       line_items: [
         {
           price_data: {
@@ -34,18 +43,15 @@ export class PaymentsService {
               name: booking.listing.title,
               description: `حجز عقار من ${booking.startDate.toDateString()} إلى ${booking.endDate.toDateString()}`,
             },
-            unit_amount: Math.round(booking.totalPrice * 100), // Stripe يستخدم السنت
+            unit_amount: Math.round(booking.totalPrice * 100),
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      metadata: {
-        bookingId: booking.id,
-      },
+      metadata: { bookingId: booking.id },
     });
 
-    // تسجيل محاولة الدفع في قاعدة البيانات
     await prisma.payment.upsert({
       where: { bookingId: booking.id },
       update: { stripeSessionId: session.id },
@@ -70,11 +76,17 @@ export class PaymentsService {
         process.env.STRIPE_WEBHOOK_SECRET!
       );
     } catch (err: any) {
-      throw new AppError(`Webhook Error: ${err.message}`, 400);
+      throw new AppError(`Webhook Error: ${err.message}`, 400, 'WEBHOOK_VERIFICATION_FAILED');
     }
+
+    // Idempotency: منع معالجة نفس الـ event مرتين
+    const eventKey = `stripe:event:${event.id}`;
+    const isProcessed = await redis.get(eventKey);
+    if (isProcessed) return { received: true, alreadyProcessed: true };
 
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
+      const bookingId = session.metadata?.bookingId;
 
       await prisma.$transaction([
         prisma.payment.update({
@@ -82,11 +94,14 @@ export class PaymentsService {
           data: { status: 'succeeded' },
         }),
         prisma.booking.update({
-          where: { id: session.metadata?.bookingId },
+          where: { id: bookingId },
           data: { status: 'confirmed' },
         }),
       ]);
     }
+
+    // حفظ الـ event في Redis لمدة 24 ساعة
+    await redis.set(eventKey, 'true', 'EX', 86400);
 
     return { received: true };
   }

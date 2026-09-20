@@ -1,16 +1,10 @@
 import app from './app';
 import dotenv from 'dotenv';
-import { connectDB } from './shared/config/database';
+import prisma, { connectDB } from './shared/config/database';
 import pino from 'pino';
 
 dotenv.config();
-
-const logger = pino({
-  transport: process.env.NODE_ENV === 'development'
-    ? { target: 'pino-pretty' }
-    : undefined,
-});
-
+const logger = pino({ transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined });
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
@@ -20,16 +14,17 @@ async function startServer() {
     logger.info(`🚀 Server running on http://localhost:${PORT}`);
   });
 
-  const shutdown = async () => {
-    logger.info('Shutting down server...');
-    server.close(() => {
-      logger.info('HTTP server closed.');
+  const shutdown = async (signal: string) => {
+    logger.info(`${signal} received. Shutting down gracefully...`);
+    server.close(async () => {
+      await prisma.$disconnect();
+      logger.info('🐘 Prisma disconnected. HTTP server closed.');
       process.exit(0);
     });
   };
 
-  process.on('SIGTERM', shutdown);
-  process.on('SIGINT', shutdown);
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 startServer().catch(err => {
