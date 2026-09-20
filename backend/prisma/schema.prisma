@@ -64,6 +64,20 @@ model Booking {
   updatedAt   DateTime @updatedAt
 
   review      Review?
+
+  payment     Payment?
+}
+
+model Payment {
+  id                String   @id @default(uuid())
+  bookingId         String   @unique
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  stripeSessionId   String   @unique
+  amount            Float
+  currency          String   @default("usd")
+  status            String   // pending, succeeded, failed
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model Review {
