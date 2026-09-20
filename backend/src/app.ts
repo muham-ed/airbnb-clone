@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 import { errorHandler } from './shared/middleware/error.middleware';
 import authRoutes from './modules/auth/auth.routes';
 import listingRoutes from './modules/listings/listings.routes';
+import bookingRoutes from './modules/bookings/bookings.routes';
 
 const app = express();
 
@@ -23,6 +24,7 @@ app.use(express.json());
 // Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/listings', listingRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 
 app.get('/health', (req, res) => {
   res.status(200).json({
