@@ -4,19 +4,22 @@ import { protect, restrictTo } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
 import { createListingSchema, updateListingSchema } from './listings.schema';
 
+import { upload } from '../../shared/config/cloudinary';
+
 const router = Router();
 const controller = new ListingsController();
 
-// مسارات عامة (للجميع)
+// مسارات عامة
 router.get('/', controller.getAllListings);
 router.get('/:id', controller.getListing);
 
-// مسارات محمية (للمستخدمين المسجلين والذين هم "Hosts")
+// مسارات محمية
 router.use(protect);
 
 router.post(
   '/',
-  restrictTo(true), // true تعني أنه يجب أن يكون Host
+  restrictTo(true),
+  upload.array('images', 5), // السماح برفع حتى 5 صور
   validate(createListingSchema),
   controller.createListing
 );

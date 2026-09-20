@@ -16,7 +16,10 @@ export class ListingsController {
   }
 
   async createListing(req: AuthRequest, res: Response) {
-    const listing = await listingsService.createListing(req.body, req.user!.id);
+    const images = req.files ? (req.files as any[]).map(file => file.path) : [];
+    const listingData = { ...req.body, images };
+
+    const listing = await listingsService.createListing(listingData, req.user!.id);
     res.status(201).json({ status: 'success', data: listing });
   }
 
