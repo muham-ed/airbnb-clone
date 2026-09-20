@@ -1,7 +1,11 @@
 import prisma from '../../shared/config/database';
+import { z } from 'zod';
+import { createListingSchema } from './listings.schema';
+
+type CreateListingInput = z.infer<typeof createListingSchema>['body'] & { images: string[] };
 
 export class ListingsService {
-  async getAllListings(filters: any) {
+  async getAllListings(filters: { maxPrice?: string; minPrice?: string; location?: string }) {
     return prisma.listing.findMany({
       where: {
         available: true,
@@ -32,7 +36,7 @@ export class ListingsService {
     return listing;
   }
 
-  async createListing(data: any, hostId: string) {
+  async createListing(data: CreateListingInput, hostId: string) {
     return prisma.listing.create({
       data: {
         ...data,
@@ -41,7 +45,7 @@ export class ListingsService {
     });
   }
 
-  async updateListing(id: string, data: any, hostId: string) {
+  async updateListing(id: string, data: Partial<CreateListingInput>, hostId: string) {
     const listing = await this.getListingById(id);
 
     if (listing.hostId !== hostId) {

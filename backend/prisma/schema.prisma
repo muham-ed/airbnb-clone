@@ -60,8 +60,6 @@ model Booking {
   updatedAt   DateTime @updatedAt
 
   review      Review?
-
-  @@unique([listingId, startDate, endDate])
 }
 
 model Review {

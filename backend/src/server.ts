@@ -4,7 +4,13 @@ import { connectDB } from './shared/config/database';
 import pino from 'pino';
 
 dotenv.config();
-const logger = pino({ transport: { target: 'pino-pretty' } });
+
+const logger = pino({
+  transport: process.env.NODE_ENV === 'development'
+    ? { target: 'pino-pretty' }
+    : undefined,
+});
+
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
@@ -14,7 +20,6 @@ async function startServer() {
     logger.info(`🚀 Server running on http://localhost:${PORT}`);
   });
 
-  // Graceful Shutdown
   const shutdown = async () => {
     logger.info('Shutting down server...');
     server.close(() => {

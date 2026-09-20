@@ -16,20 +16,30 @@ export class ListingsController {
   }
 
   async createListing(req: AuthRequest, res: Response) {
+    if (!req.user) {
+      const error: any = new Error('غير مصرح لك بالقيام بهذا الإجراء');
+      error.statusCode = 401;
+      throw error;
+    }
+
     const images = req.files ? (req.files as any[]).map(file => file.path) : [];
     const listingData = { ...req.body, images };
 
-    const listing = await listingsService.createListing(listingData, req.user!.id);
+    const listing = await listingsService.createListing(listingData, req.user.id);
     res.status(201).json({ status: 'success', data: listing });
   }
 
   async updateListing(req: AuthRequest, res: Response) {
-    const listing = await listingsService.updateListing(req.params.id, req.body, req.user!.id);
+    if (!req.user) throw new Error('Unauthorized');
+
+    const listing = await listingsService.updateListing(req.params.id, req.body, req.user.id);
     res.status(200).json({ status: 'success', data: listing });
   }
 
   async deleteListing(req: AuthRequest, res: Response) {
-    await listingsService.deleteListing(req.params.id, req.user!.id);
+    if (!req.user) throw new Error('Unauthorized');
+
+    await listingsService.deleteListing(req.params.id, req.user.id);
     res.status(204).json({ status: 'success', data: null });
   }
 }

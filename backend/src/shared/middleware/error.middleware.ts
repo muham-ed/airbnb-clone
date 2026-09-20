@@ -3,7 +3,11 @@ import { Prisma } from '@prisma/client';
 import { ZodError } from 'zod';
 import pino from 'pino';
 
-const logger = pino({ transport: { target: 'pino-pretty' } });
+const logger = pino({
+  transport: process.env.NODE_ENV === 'development'
+    ? { target: 'pino-pretty' }
+    : undefined,
+});
 
 export const errorHandler = (
   err: any,
@@ -19,7 +23,7 @@ export const errorHandler = (
     stack: process.env.NODE_ENV === 'development' ? err.stack : undefined,
   });
 
-  // 1. Prisma Errors
+  // 1. Prisma Known Request Errors
   if (err instanceof Prisma.PrismaClientKnownRequestError) {
     if (err.code === 'P2002') {
       return res.status(409).json({
@@ -31,7 +35,17 @@ export const errorHandler = (
     }
   }
 
-  // 2. Validation Errors (Zod)
+  // 2. Prisma Validation Errors (إصلاح المهمة 9)
+  if (err instanceof Prisma.PrismaClientValidationError) {
+    return res.status(400).json({
+      status: 'error',
+      code: 'DATABASE_VALIDATION_ERROR',
+      message: 'بيانات غير صالحة لقاعدة البيانات',
+      requestId
+    });
+  }
+
+  // 3. Validation Errors (Zod)
   if (err instanceof ZodError) {
     return res.status(400).json({
       status: 'error',
@@ -41,8 +55,8 @@ export const errorHandler = (
     });
   }
 
-  // 3. JWT Errors
-  if (err.name === 'JsonWebTokenError') {
+  // 4. JWT Errors
+  if (err.name === 'JsonWebTokenError' || err.name === 'TokenExpiredError') {
     return res.status(401).json({
       status: 'error',
       code: 'INVALID_TOKEN',

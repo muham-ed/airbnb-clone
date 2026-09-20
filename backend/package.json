@@ -12,7 +12,7 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "lint": "eslint src/**/*.ts",
     "format": "prettier --write src/**/*.ts",
-    "test": "vitest"
+    "test": "vitest run"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

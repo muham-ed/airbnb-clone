@@ -1,17 +1,19 @@
 import prisma from '../../shared/config/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { RegisterInput, LoginInput } from './auth.schema';
 
 export class AuthService {
-  private generateToken(userId: string): string {
+  // تم تحويلها لـ public ليستخدمها الـ controller في الـ refresh
+  public generateAccessToken(userId: string): string {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
       throw new Error('FATAL: JWT_SECRET is not defined in environment variables');
     }
-    return jwt.sign({ userId }, secret, { expiresIn: '15m' }); // 15 دقيقة كما طلبت
+    return jwt.sign({ userId }, secret, { expiresIn: '15m' });
   }
 
-  async register(data: any) {
+  async register(data: RegisterInput['body']) {
     const { email, password, name, avatar, isHost } = data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
@@ -33,7 +35,7 @@ export class AuthService {
       },
     });
 
-    const token = this.generateToken(user.id);
+    const token = this.generateAccessToken(user.id);
 
     return {
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
@@ -41,7 +43,7 @@ export class AuthService {
     };
   }
 
-  async login(data: any) {
+  async login(data: LoginInput['body']) {
     const { email, password } = data;
 
     const user = await prisma.user.findUnique({ where: { email } });
@@ -58,7 +60,7 @@ export class AuthService {
       throw error;
     }
 
-    const token = this.generateToken(user.id);
+    const token = this.generateAccessToken(user.id);
 
     return {
       user: { id: user.id, email: user.email, name: user.name, role: user.role },

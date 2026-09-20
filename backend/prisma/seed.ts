@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 async function main() {
   const hashedPassword = await bcrypt.hash('password123', 12);
 
-  // 1. Create Host
+  // 1. Upsert Host
   const host = await prisma.user.upsert({
     where: { email: 'host@example.com' },
     update: {},
@@ -18,19 +18,24 @@ async function main() {
     },
   });
 
-  // 2. Create Listing
-  await prisma.listing.create({
-    data: {
-      title: 'Luxury Villa in Cairo',
-      description: 'A beautiful villa with a pool and great view.',
-      price: 150.5,
-      location: 'Cairo, Egypt',
-      amenities: ['Pool', 'WiFi', 'Kitchen'],
-      hostId: host.id,
-    },
-  });
+  // 2. Upsert Listing (باستخدام العنوان كمعرف فريد للـ seed فقط)
+  const listingTitle = 'Luxury Villa in Cairo';
+  const existingListing = await prisma.listing.findFirst({ where: { title: listingTitle } });
 
-  console.log('✅ Seeding completed!');
+  if (!existingListing) {
+    await prisma.listing.create({
+      data: {
+        title: listingTitle,
+        description: 'A beautiful villa with a pool and great view.',
+        price: 150.5,
+        location: 'Cairo, Egypt',
+        amenities: ['Pool', 'WiFi', 'Kitchen'],
+        hostId: host.id,
+      },
+    });
+  }
+
+  console.log('✅ Seeding completed successfully!');
 }
 
 main()

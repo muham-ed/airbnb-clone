@@ -10,22 +10,17 @@ import bookingRoutes from './modules/bookings/bookings.routes';
 
 const app = express();
 
-// Security Middleware
 app.use(helmet());
-app.use(rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 mins
-  max: 100, // 100 requests per IP
-  message: 'لقد تجاوزت الحد المسموح به من الطلبات، يرجى المحاولة لاحقاً'
-}));
-
 app.use(cors());
 app.use(express.json());
 
-// Routes
-app.use('/api/v1/auth', authRoutes);
-app.use('/api/v1/listings', listingRoutes);
-app.use('/api/v1/bookings', bookingRoutes);
+const apiLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'لقد تجاوزت الحد المسموح به من الطلبات، يرجى المحاولة لاحقاً'
+});
 
+// Health Check (خارج نطاق الـ API Limiter)
 app.get('/health', (req, res) => {
   res.status(200).json({
     status: 'OK',
@@ -33,6 +28,14 @@ app.get('/health', (req, res) => {
     service: 'airbnb-clone-backend'
   });
 });
+
+// تطبيق الـ Rate Limit على المسارات الفعلية فقط
+app.use('/api', apiLimiter);
+
+// Routes
+app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/listings', listingRoutes);
+app.use('/api/v1/bookings', bookingRoutes);
 
 app.use(errorHandler);
 

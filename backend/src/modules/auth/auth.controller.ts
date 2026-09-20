@@ -30,17 +30,17 @@ export class AuthController {
 
   async refresh(req: Request, res: Response) {
     const { refreshToken } = req.body;
+    const currentDeviceId = req.headers['user-agent'] || 'unknown';
+
     const session = await refreshService.verifyRefreshToken(refreshToken);
 
-    if (!session) {
-      const error: any = new Error('Session expired or invalid');
+    if (!session || session.deviceId !== currentDeviceId) {
+      const error: any = new Error('Session expired or invalid device');
       error.statusCode = 401;
       throw error;
     }
 
-    // هنا نقوم بتوليد Access Token جديد فقط (AuthService يحتاج تعديل بسيط ليقبل توليد توكن بدون باسورد)
-    // للتبسيط حالياً سنعيد نفس منطق التوليد
-    const token = (authService as any).generateToken(session.userId);
+    const token = authService.generateAccessToken(session.userId);
 
     res.status(200).json({ status: 'success', token });
   }
