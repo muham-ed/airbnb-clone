@@ -13,7 +13,6 @@ export interface AuthRequest extends Request {
 }
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
-  // ... (سأقوم بتحديث البحث عن المستخدم لجلب الـ role بدلاً من isHost)
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
@@ -31,11 +30,12 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     if (!secret) {
       throw new Error('FATAL: JWT_SECRET is not defined in environment variables');
     }
+
     const decoded: any = jwt.verify(token, secret);
 
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, isHost: true }
+      select: { id: true, email: true, role: true }
     });
 
     if (!user) {
@@ -44,7 +44,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
       throw error;
     }
 
-    req.user = user;
+    req.user = user as { id: string; email: string; role: UserRole };
     next();
   } catch (error) {
     const authError: any = new Error('مفتاح الدخول غير صالح أو منتهي الصلاحية');
@@ -53,9 +53,9 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
   }
 };
 
-export const restrictTo = (...roles: boolean[]) => {
+export const restrictTo = (...roles: UserRole[]) => {
   return (req: AuthRequest, res: Response, next: NextFunction) => {
-    if (!req.user || !roles.includes(req.user.isHost)) {
+    if (!req.user || !roles.includes(req.user.role)) {
       const error: any = new Error('ليس لديك صلاحية للقيام بهذا الإجراء');
       error.statusCode = 403;
       return next(error);

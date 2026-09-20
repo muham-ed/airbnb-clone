@@ -10,10 +10,21 @@ const PORT = process.env.PORT || 5000;
 async function startServer() {
   await connectDB();
 
-  app.listen(PORT, () => {
+  const server = app.listen(PORT, () => {
     logger.info(`🚀 Server running on http://localhost:${PORT}`);
-    logger.info(`📡 Health check: http://localhost:${PORT}/health`);
   });
+
+  // Graceful Shutdown
+  const shutdown = async () => {
+    logger.info('Shutting down server...');
+    server.close(() => {
+      logger.info('HTTP server closed.');
+      process.exit(0);
+    });
+  };
+
+  process.on('SIGTERM', shutdown);
+  process.on('SIGINT', shutdown);
 }
 
 startServer().catch(err => {

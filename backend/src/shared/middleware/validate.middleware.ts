@@ -4,14 +4,20 @@ import { AnyZodObject } from 'zod';
 export const validate = (schema: AnyZodObject) => {
   return async (req: Request, res: Response, next: NextFunction) => {
     try {
-      await schema.parseAsync({
+      const parsed = await schema.parseAsync({
         body: req.body,
         query: req.query,
         params: req.params,
       });
+
+      // إسناد البيانات المحللة (مهم جداً لتحويل Strings إلى Numbers في Multer)
+      req.body = parsed.body;
+      req.query = parsed.query;
+      req.params = parsed.params;
+
       return next();
     } catch (error) {
-      return next(error); // سيتولى error.middleware.ts معالجة أخطاء Zod الاحترافية التي قمنا بصياغتها سابقاً
+      return next(error);
     }
   };
 };

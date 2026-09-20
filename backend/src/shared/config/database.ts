@@ -1,12 +1,16 @@
 import { PrismaClient } from '@prisma/client';
 import pino from 'pino';
 
-const logger = pino({ transport: { target: 'pino-pretty' } });
+const logger = pino({
+  transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined
+});
+
 const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error'],
+  log: process.env.NODE_ENV === 'development' ? ['query', 'info', 'warn', 'error'] : ['error'],
 });
 
 export async function connectDB(retries = 5) {
+  let backoff = 1000;
   while (retries > 0) {
     try {
       await prisma.$connect();
@@ -14,13 +18,12 @@ export async function connectDB(retries = 5) {
       return;
     } catch (error) {
       retries -= 1;
-      logger.warn(`⚠️ Database connection failed. Retries left: ${retries}`);
+      logger.warn(`⚠️ Database connection failed. Retries left: ${retries}. Backoff: ${backoff}ms`);
       if (retries === 0) {
-        logger.error('❌ Could not connect to database after multiple attempts', error);
-        process.exit(1);
+        throw new Error('Could not connect to database after multiple attempts');
       }
-      // انتظر ثانيتين قبل المحاولة التالية
-      await new Promise(res => setTimeout(res, 2000));
+      await new Promise(res => setTimeout(res, backoff));
+      backoff *= 2; // Exponential backoff
     }
   }
 }

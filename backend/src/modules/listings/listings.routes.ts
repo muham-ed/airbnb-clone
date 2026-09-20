@@ -18,22 +18,22 @@ router.use(protect);
 
 router.post(
   '/',
-  restrictTo(true),
-  upload.array('images', 5), // السماح برفع حتى 5 صور
+  restrictTo('HOST'),
+  upload.array('images', 5),
   validate(createListingSchema),
   controller.createListing
 );
 
 router.patch(
   '/:id',
-  restrictTo(true),
+  restrictTo('HOST'),
   validate(updateListingSchema),
   controller.updateListing
 );
 
 router.delete(
   '/:id',
-  restrictTo(true),
+  restrictTo('HOST'),
   controller.deleteListing
 );
 

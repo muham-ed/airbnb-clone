@@ -1,5 +1,4 @@
 import Redis from 'ioredis';
-import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
