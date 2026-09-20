@@ -7,7 +7,6 @@ export const createListingSchema = z.object({
     price: z.number({ required_error: 'السعر مطلوب' }).positive('السعر يجب أن يكون رقماً موجباً'),
     location: z.string({ required_error: 'الموقع مطلوب' }),
     amenities: z.array(z.string()).min(1, 'يجب إضافة ميزة واحدة على الأقل (مثل: واي فاي، مسبح)'),
-    images: z.array(z.string()).optional(),
   }),
 });
 

@@ -13,13 +13,19 @@ model User {
   password  String
   name      String
   avatar    String?
-  isHost    Boolean  @default(false)
+  role      UserRole @default(GUEST)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   listings  Listing[]
   bookings  Booking[]
   reviews   Review[]
+}
+
+enum UserRole {
+  GUEST
+  HOST
+  ADMIN
 }
 
 model Listing {

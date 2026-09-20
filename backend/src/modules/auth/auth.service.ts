@@ -4,8 +4,11 @@ import jwt from 'jsonwebtoken';
 
 export class AuthService {
   private generateToken(userId: string): string {
-    const secret = process.env.JWT_SECRET || 'fallback_secret_key_for_dev';
-    return jwt.sign({ userId }, secret, { expiresIn: '7d' });
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error('FATAL: JWT_SECRET is not defined in environment variables');
+    }
+    return jwt.sign({ userId }, secret, { expiresIn: '15m' });
   }
 
   async register(data: any) {

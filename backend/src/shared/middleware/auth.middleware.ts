@@ -2,15 +2,18 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import prisma from '../config/database';
 
+export type UserRole = 'GUEST' | 'HOST' | 'ADMIN';
+
 export interface AuthRequest extends Request {
   user?: {
     id: string;
     email: string;
-    isHost: boolean;
+    role: UserRole;
   };
 }
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
+  // ... (سأقوم بتحديث البحث عن المستخدم لجلب الـ role بدلاً من isHost)
   let token;
 
   if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
