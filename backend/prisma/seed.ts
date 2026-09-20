@@ -18,21 +18,26 @@ async function main() {
     },
   });
 
-  // 2. Upsert Listing (باستخدام العنوان كمعرف فريد للـ seed فقط)
-  const listingTitle = 'Luxury Villa in Cairo';
-  const existingListing = await prisma.listing.findFirst({ where: { title: listingTitle } });
+  // 2. Create Listing only if it doesn't exist
+  // ملاحظة: بما أن Prisma لا تدعم upsert على الحقول غير الفريدة، سنستخدم منطقاً ذكياً
+  const listingData = {
+    title: 'Luxury Villa in Cairo',
+    description: 'A beautiful villa with a pool and great view.',
+    price: 150.5,
+    location: 'Cairo, Egypt',
+    amenities: ['Pool', 'WiFi', 'Kitchen'],
+    hostId: host.id,
+  };
+
+  const existingListing = await prisma.listing.findFirst({
+    where: { title: listingData.title }
+  });
 
   if (!existingListing) {
-    await prisma.listing.create({
-      data: {
-        title: listingTitle,
-        description: 'A beautiful villa with a pool and great view.',
-        price: 150.5,
-        location: 'Cairo, Egypt',
-        amenities: ['Pool', 'WiFi', 'Kitchen'],
-        hostId: host.id,
-      },
-    });
+    await prisma.listing.create({ data: listingData });
+    console.log('🏠 Listing created');
+  } else {
+    console.log('🏠 Listing already exists, skipping');
   }
 
   console.log('✅ Seeding completed successfully!');

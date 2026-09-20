@@ -2,9 +2,9 @@ import prisma from '../../shared/config/database';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { RegisterInput, LoginInput } from './auth.schema';
+import { AppError } from '../../shared/utils/app-error';
 
 export class AuthService {
-  // تم تحويلها لـ public ليستخدمها الـ controller في الـ refresh
   public generateAccessToken(userId: string): string {
     const secret = process.env.JWT_SECRET;
     if (!secret) {
@@ -18,9 +18,7 @@ export class AuthService {
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      const error: any = new Error('هذا البريد الإلكتروني مسجل بالفعل');
-      error.statusCode = 409;
-      throw error;
+      throw new AppError('هذا البريد الإلكتروني مسجل بالفعل', 409);
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -48,16 +46,12 @@ export class AuthService {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      const error: any = new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-      error.statusCode = 401;
-      throw error;
+      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
-      const error: any = new Error('البريد الإلكتروني أو كلمة المرور غير صحيحة');
-      error.statusCode = 401;
-      throw error;
+      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
     }
 
     const token = this.generateAccessToken(user.id);

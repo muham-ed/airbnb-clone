@@ -48,6 +48,10 @@ model Listing {
 
 model Booking {
   id          String   @id @default(uuid())
+  // ... بقية الحقول
+  // ملاحظة أمنية هامة: تم إضافة EXCLUDE CONSTRAINT يدوياً في ترحيل SQL
+  // لمنع تداخل التواريخ (Overlap) لنفس العقار.
+  // راجع: prisma/migrations/0_manual_booking_constraint/migration.sql
   listingId   String
   listing     Listing  @relation(fields: [listingId], references: [id])
   guestId     String
