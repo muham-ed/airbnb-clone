@@ -34,6 +34,8 @@ model Listing {
   description String
   price       Float
   location    String
+  latitude    Float?   // إحداثيات العرض
+  longitude   Float?   // إحداثيات الطول
   images      String[]
   amenities   String[]
   available   Boolean  @default(true)

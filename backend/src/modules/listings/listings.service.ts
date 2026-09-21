@@ -12,15 +12,16 @@ export class ListingsService {
     location?: string;
     startDate?: string;
     endDate?: string;
+    lat?: string;
+    lng?: string;
+    radius?: string;
   }) {
-    const { maxPrice, minPrice, location, startDate, endDate } = filters;
+    const { maxPrice, minPrice, location, startDate, endDate, lat, lng, radius } = filters;
 
-    // محرك فلترة التوافر (Availability Logic)
     let availabilityFilter = {};
     if (startDate && endDate) {
       const start = new Date(startDate);
       const end = new Date(endDate);
-
       availabilityFilter = {
         bookings: {
           none: {
@@ -33,6 +34,25 @@ export class ListingsService {
           }
         }
       };
+    }
+
+    // إذا كان البحث مكاني (جغرافي)
+    if (lat && lng && radius) {
+      const latitude = parseFloat(lat);
+      const longitude = parseFloat(lng);
+      const searchRadius = parseFloat(radius);
+
+      // استخدام SQL Raw لحساب المسافة (Haversine Formula)
+      // ملاحظة: هذا الاستعلام يفلتر حسب المسافة ويجلب العقارات المتاحة فقط
+      return prisma.$queryRawUnsafe(`
+        SELECT *,
+          (6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(latitude)))) AS distance
+        FROM "Listing"
+        WHERE available = true
+        GROUP BY id
+        HAVING (6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(latitude)))) <= ${searchRadius}
+        ORDER BY distance ASC
+      `);
     }
 
     return prisma.listing.findMany({
@@ -81,11 +101,7 @@ export class ListingsService {
     if (listing.hostId !== hostId) {
       throw new AppError('لا تملك صلاحية لتعديل هذا العقار', 403, 'FORBIDDEN');
     }
-
-    return prisma.listing.update({
-      where: { id },
-      data,
-    });
+    return prisma.listing.update({ where: { id }, data });
   }
 
   async deleteListing(id: string, hostId: string) {
@@ -93,7 +109,6 @@ export class ListingsService {
     if (listing.hostId !== hostId) {
       throw new AppError('لا تملك صلاحية لحذف هذا العقار', 403, 'FORBIDDEN');
     }
-
     return prisma.listing.delete({ where: { id } });
   }
 }

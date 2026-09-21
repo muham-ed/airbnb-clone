@@ -6,6 +6,8 @@ export const createListingSchema = z.object({
     description: z.string({ required_error: 'وصف العقار مطلوب' }).min(20, 'الوصف يجب أن يكون مفصلاً'),
     price: z.coerce.number({ required_error: 'السعر مطلوب' }).positive('السعر يجب أن يكون رقماً موجباً'),
     location: z.string({ required_error: 'الموقع مطلوب' }),
+    latitude: z.coerce.number().min(-90).max(90).optional(),
+    longitude: z.coerce.number().min(-180).max(180).optional(),
     amenities: z.array(z.string()).min(1, 'يجب إضافة ميزة واحدة على الأقل (مثل: واي فاي، مسبح)'),
   }),
 });
