@@ -2,7 +2,9 @@ import Redis from 'ioredis';
 import { v4 as uuidv4 } from 'uuid';
 import pino from 'pino';
 
-const logger = pino();
+const logger = pino({
+  transport: process.env.NODE_ENV === 'development' ? { target: 'pino-pretty' } : undefined
+});
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
 
 redis.on('error', (err) => {

@@ -1,58 +1,40 @@
 import prisma from '../../shared/config/database';
-import { z } from 'zod';
-import { createListingSchema } from './listings.schema';
+import { CreateListingInput, UpdateListingInput, SearchListingsInput } from './listings.schema';
 import { AppError } from '../../shared/utils/app-error';
 
-type CreateListingInput = z.infer<typeof createListingSchema>['body'] & { images: string[] };
-
 export class ListingsService {
-  async getAllListings(filters: {
-    maxPrice?: string;
-    minPrice?: string;
-    location?: string;
-    startDate?: string;
-    endDate?: string;
-    lat?: string;
-    lng?: string;
-    radius?: string;
-  }) {
+  async getAllListings(filters: SearchListingsInput['query']) {
     const { maxPrice, minPrice, location, startDate, endDate, lat, lng, radius } = filters;
 
+    // 1. البحث الجغرافي الآمن (إصلاح القاتل الجديد)
+    if (lat && lng && radius) {
+      // استخدام $queryRaw مع Template Literal لمنع الـ SQL Injection تلقائياً
+      return prisma.$queryRaw`
+        SELECT *,
+          (6371 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) AS distance
+        FROM "Listing"
+        WHERE available = true
+        GROUP BY id
+        HAVING (6371 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) <= ${radius}
+        ORDER BY distance ASC
+      `;
+    }
+
+    // 2. الفلترة العادية
     let availabilityFilter = {};
     if (startDate && endDate) {
-      const start = new Date(startDate);
-      const end = new Date(endDate);
       availabilityFilter = {
         bookings: {
           none: {
             status: { in: ['pending', 'confirmed'] },
             OR: [
-              { startDate: { lt: end, gte: start } },
-              { endDate: { gt: start, lte: end } },
-              { startDate: { lte: start }, endDate: { gte: end } }
+              { startDate: { lt: endDate, gte: startDate } },
+              { endDate: { gt: startDate, lte: endDate } },
+              { startDate: { lte: startDate }, endDate: { gte: endDate } }
             ]
           }
         }
       };
-    }
-
-    // إذا كان البحث مكاني (جغرافي)
-    if (lat && lng && radius) {
-      const latitude = parseFloat(lat);
-      const longitude = parseFloat(lng);
-      const searchRadius = parseFloat(radius);
-
-      // استخدام SQL Raw لحساب المسافة (Haversine Formula)
-      // ملاحظة: هذا الاستعلام يفلتر حسب المسافة ويجلب العقارات المتاحة فقط
-      return prisma.$queryRawUnsafe(`
-        SELECT *,
-          (6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(latitude)))) AS distance
-        FROM "Listing"
-        WHERE available = true
-        GROUP BY id
-        HAVING (6371 * acos(cos(radians(${latitude})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${longitude})) + sin(radians(${latitude})) * sin(radians(latitude)))) <= ${searchRadius}
-        ORDER BY distance ASC
-      `);
     }
 
     return prisma.listing.findMany({
@@ -60,8 +42,8 @@ export class ListingsService {
         available: true,
         ...availabilityFilter,
         price: {
-          lte: maxPrice ? parseFloat(maxPrice) : undefined,
-          gte: minPrice ? parseFloat(minPrice) : undefined,
+          lte: maxPrice,
+          gte: minPrice,
         },
         location: location ? { contains: location, mode: 'insensitive' } : undefined,
       },
@@ -81,34 +63,38 @@ export class ListingsService {
         reviews: { include: { user: { select: { name: true, avatar: true } } } }
       },
     });
-    if (!listing) {
-      throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
-    }
+    if (!listing) throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
     return listing;
   }
 
-  async createListing(data: CreateListingInput, hostId: string) {
+  async createListing(data: CreateListingInput['body'] & { images: string[] }, hostId: string) {
     return prisma.listing.create({
-      data: {
-        ...data,
-        hostId,
-      },
+      data: { ...data, hostId },
     });
   }
 
-  async updateListing(id: string, data: Partial<CreateListingInput>, hostId: string) {
-    const listing = await this.getListingById(id);
-    if (listing.hostId !== hostId) {
-      throw new AppError('لا تملك صلاحية لتعديل هذا العقار', 403, 'FORBIDDEN');
-    }
+  async updateListing(id: string, data: UpdateListingInput['body'], hostId: string) {
+    // إصلاح المهمة 5: جلب hostId فقط لتقليل الاستهلاك
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: { hostId: true }
+    });
+
+    if (!listing) throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
+    if (listing.hostId !== hostId) throw new AppError('لا تملك صلاحية لتعديل هذا العقار', 403, 'FORBIDDEN');
+
     return prisma.listing.update({ where: { id }, data });
   }
 
   async deleteListing(id: string, hostId: string) {
-    const listing = await this.getListingById(id);
-    if (listing.hostId !== hostId) {
-      throw new AppError('لا تملك صلاحية لحذف هذا العقار', 403, 'FORBIDDEN');
-    }
+    const listing = await prisma.listing.findUnique({
+      where: { id },
+      select: { hostId: true }
+    });
+
+    if (!listing) throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
+    if (listing.hostId !== hostId) throw new AppError('لا تملك صلاحية لحذف هذا العقار', 403, 'FORBIDDEN');
+
     return prisma.listing.delete({ where: { id } });
   }
 }

@@ -23,6 +23,8 @@ export default prisma;
 
 if (process.env.NODE_ENV !== 'production') globalThis.prisma = prisma;
 
+export {}
+
 export async function connectDB(retries = 5) {
   let backoff = 1000;
   while (retries > 0) {

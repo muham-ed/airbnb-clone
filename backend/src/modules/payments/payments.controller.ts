@@ -1,13 +1,14 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import { PaymentsService } from './payments.service';
+import { AuthRequest } from '../../shared/middleware/auth.middleware';
 
 const paymentsService = new PaymentsService();
 
 export class PaymentsController {
-  async createCheckoutSession(req: Request, res: Response) {
+  async createCheckoutSession(req: AuthRequest, res: Response) {
     const { bookingId } = req.body;
-    // تم تمرير req.user.id لضمان عدم حدوث IDOR كما طلب المراجع
-    const url = await paymentsService.createCheckoutSession(bookingId, (req as any).user.id);
+    // تم استخدام req.user.id بشكل آمن عبر AuthRequest
+    const url = await paymentsService.createCheckoutSession(bookingId, req.user!.id);
 
     res.status(200).json({
       status: 'success',
@@ -15,7 +16,7 @@ export class PaymentsController {
     });
   }
 
-  async webhook(req: Request, res: Response) {
+  async webhook(req: AuthRequest, res: Response) {
     const sig = req.headers['stripe-signature'] as string;
     const result = await paymentsService.handleWebhook(sig, req.body);
 

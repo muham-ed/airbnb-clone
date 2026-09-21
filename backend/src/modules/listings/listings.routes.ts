@@ -2,15 +2,14 @@ import { Router } from 'express';
 import { ListingsController } from './listings.controller';
 import { protect, restrictTo } from '../../shared/middleware/auth.middleware';
 import { validate } from '../../shared/middleware/validate.middleware';
-import { createListingSchema, updateListingSchema } from './listings.schema';
-
+import { createListingSchema, updateListingSchema, searchListingsSchema } from './listings.schema';
 import { upload } from '../../shared/config/cloudinary';
 
 const router = Router();
 const controller = new ListingsController();
 
 // مسارات عامة
-router.get('/', controller.getAllListings);
+router.get('/', validate(searchListingsSchema), controller.getAllListings);
 router.get('/:id', controller.getListing);
 
 // مسارات محمية
