@@ -1,21 +1,54 @@
 import prisma from '../../shared/config/database';
 import { z } from 'zod';
 import { createListingSchema } from './listings.schema';
+import { AppError } from '../../shared/utils/app-error';
 
 type CreateListingInput = z.infer<typeof createListingSchema>['body'] & { images: string[] };
 
 export class ListingsService {
-  async getAllListings(filters: { maxPrice?: string; minPrice?: string; location?: string }) {
+  async getAllListings(filters: {
+    maxPrice?: string;
+    minPrice?: string;
+    location?: string;
+    startDate?: string;
+    endDate?: string;
+  }) {
+    const { maxPrice, minPrice, location, startDate, endDate } = filters;
+
+    // محرك فلترة التوافر (Availability Logic)
+    let availabilityFilter = {};
+    if (startDate && endDate) {
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      availabilityFilter = {
+        bookings: {
+          none: {
+            status: { in: ['pending', 'confirmed'] },
+            OR: [
+              { startDate: { lt: end, gte: start } },
+              { endDate: { gt: start, lte: end } },
+              { startDate: { lte: start }, endDate: { gte: end } }
+            ]
+          }
+        }
+      };
+    }
+
     return prisma.listing.findMany({
       where: {
         available: true,
+        ...availabilityFilter,
         price: {
-          lte: filters.maxPrice ? parseFloat(filters.maxPrice) : undefined,
-          gte: filters.minPrice ? parseFloat(filters.minPrice) : undefined,
+          lte: maxPrice ? parseFloat(maxPrice) : undefined,
+          gte: minPrice ? parseFloat(minPrice) : undefined,
         },
-        location: filters.location ? { contains: filters.location, mode: 'insensitive' } : undefined,
+        location: location ? { contains: location, mode: 'insensitive' } : undefined,
       },
-      include: { host: { select: { name: true, avatar: true } } },
+      include: {
+        host: { select: { name: true, avatar: true } },
+        _count: { select: { reviews: true } }
+      },
       orderBy: { createdAt: 'desc' },
     });
   }
@@ -25,13 +58,11 @@ export class ListingsService {
       where: { id },
       include: {
         host: { select: { id: true, name: true, avatar: true, email: true } },
-        reviews: true
+        reviews: { include: { user: { select: { name: true, avatar: true } } } }
       },
     });
     if (!listing) {
-      const error: any = new Error('العقار غير موجود');
-      error.statusCode = 404;
-      throw error;
+      throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
     }
     return listing;
   }
@@ -47,11 +78,8 @@ export class ListingsService {
 
   async updateListing(id: string, data: Partial<CreateListingInput>, hostId: string) {
     const listing = await this.getListingById(id);
-
     if (listing.hostId !== hostId) {
-      const error: any = new Error('لا تملك صلاحية لتعديل هذا العقار');
-      error.statusCode = 403;
-      throw error;
+      throw new AppError('لا تملك صلاحية لتعديل هذا العقار', 403, 'FORBIDDEN');
     }
 
     return prisma.listing.update({
@@ -62,11 +90,8 @@ export class ListingsService {
 
   async deleteListing(id: string, hostId: string) {
     const listing = await this.getListingById(id);
-
     if (listing.hostId !== hostId) {
-      const error: any = new Error('لا تملك صلاحية لحذف هذا العقار');
-      error.statusCode = 403;
-      throw error;
+      throw new AppError('لا تملك صلاحية لحذف هذا العقار', 403, 'FORBIDDEN');
     }
 
     return prisma.listing.delete({ where: { id } });
