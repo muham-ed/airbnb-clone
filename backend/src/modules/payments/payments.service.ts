@@ -4,7 +4,7 @@ import { AppError } from '../../shared/utils/app-error';
 import Redis from 'ioredis';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia', // تحديث لنسخة مستقرة ومعروفة
+  apiVersion: '2025-01-27.acacia' as any,
 });
 
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');

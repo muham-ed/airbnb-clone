@@ -6,7 +6,8 @@ const paymentsService = new PaymentsService();
 export class PaymentsController {
   async createCheckoutSession(req: Request, res: Response) {
     const { bookingId } = req.body;
-    const url = await paymentsService.createCheckoutSession(bookingId);
+    // تم تمرير req.user.id لضمان عدم حدوث IDOR كما طلب المراجع
+    const url = await paymentsService.createCheckoutSession(bookingId, (req as any).user.id);
 
     res.status(200).json({
       status: 'success',
