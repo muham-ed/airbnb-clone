@@ -6,7 +6,7 @@ export const registerSchema = z.object({
     password: z.string({ required_error: 'كلمة المرور مطلوبة' }).min(6, 'كلمة المرور يجب ألا تقل عن 6 أحرف'),
     name: z.string({ required_error: 'الاسم مطلوب' }).min(2, 'الاسم قصير جداً'),
     avatar: z.string().url('رابط الصورة غير صحيح').optional(),
-    isHost: z.boolean().optional(), // سنستخدمه لتحديد الـ role في الـ service
+    role: z.enum(['GUEST', 'HOST']).optional(), // ADMIN ممنوع في التسجيل العام
   }),
 });
 

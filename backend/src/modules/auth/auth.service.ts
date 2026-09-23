@@ -14,11 +14,11 @@ export class AuthService {
   }
 
   async register(data: RegisterInput['body']) {
-    const { email, password, name, avatar, isHost } = data;
+    const { email, password, name, avatar, role } = data;
 
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw new AppError('هذا البريد الإلكتروني مسجل بالفعل', 409);
+      throw new AppError('هذا البريد الإلكتروني مسجل بالفعل', 409, 'EMAIL_EXISTS');
     }
 
     const hashedPassword = await bcrypt.hash(password, 12);
@@ -29,7 +29,7 @@ export class AuthService {
         password: hashedPassword,
         name,
         avatar,
-        role: isHost ? 'HOST' : 'GUEST',
+        role: role || 'GUEST',
       },
     });
 
@@ -46,12 +46,12 @@ export class AuthService {
 
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
+      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401, 'INVALID_CREDENTIALS');
     }
 
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
-      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401);
+      throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401, 'INVALID_CREDENTIALS');
     }
 
     const token = this.generateAccessToken(user.id);
