@@ -6,8 +6,12 @@ const listingsService = new ListingsService();
 
 export class ListingsController {
   async getAllListings(req: AuthRequest, res: Response) {
-    const listings = await listingsService.getAllListings(req.query);
-    res.status(200).json({ status: 'success', results: listings.length, data: listings });
+    const listings = await listingsService.getAllListings(req.query as any);
+    res.status(200).json({
+      status: 'success',
+      results: (listings as any[]).length,
+      data: listings
+    });
   }
 
   async getListing(req: AuthRequest, res: Response) {
