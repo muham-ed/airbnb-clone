@@ -5,6 +5,7 @@ import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
 import { errorHandler } from './shared/middleware/error.middleware';
 import authRoutes from './modules/auth/auth.routes';
+import userRoutes from './modules/users/users.routes';
 import listingRoutes from './modules/listings/listings.routes';
 import bookingRoutes from './modules/bookings/bookings.routes';
 import paymentRoutes from './modules/payments/payments.routes';
@@ -37,6 +38,7 @@ app.get('/health', (req, res) => {
 app.use('/api', apiLimiter);
 
 app.use('/api/v1/auth', authRoutes);
+app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/listings', listingRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/payments', paymentRoutes);
