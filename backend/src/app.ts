@@ -9,6 +9,7 @@ import userRoutes from './modules/users/users.routes';
 import listingRoutes from './modules/listings/listings.routes';
 import bookingRoutes from './modules/bookings/bookings.routes';
 import paymentRoutes from './modules/payments/payments.routes';
+import uploadRoutes from './modules/upload/upload.routes';
 
 const app = express();
 
@@ -42,6 +43,7 @@ app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/listings', listingRoutes);
 app.use('/api/v1/bookings', bookingRoutes);
 app.use('/api/v1/payments', paymentRoutes);
+app.use('/api/v1/upload', uploadRoutes);
 
 app.use(errorHandler);
 
