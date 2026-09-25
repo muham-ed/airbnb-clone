@@ -10,10 +10,15 @@ const controller = new ListingsController();
 
 // مسارات عامة
 router.get('/', validate(searchListingsSchema), controller.getAllListings);
-router.get('/:id', controller.getListing);
 
 // مسارات محمية
 router.use(protect);
+
+// مسار عقاراتي الخاصة بالمضيف (يجب وضعه قبل :id)
+router.get('/my-listings', restrictTo('HOST'), controller.getMyListings);
+
+// مسار جلب تفاصيل عقار بالـ id
+router.get('/:id', controller.getListing);
 
 router.post(
   '/',

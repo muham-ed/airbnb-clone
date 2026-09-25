@@ -6,9 +6,8 @@ export class ListingsService {
   async getAllListings(filters: SearchListingsInput['query']) {
     const { maxPrice, minPrice, location, startDate, endDate, lat, lng, radius } = filters;
 
-    // 1. البحث الجغرافي الآمن (إصلاح القاتل الجديد)
+    // 1. البحث الجغرافي الآمن
     if (lat && lng && radius) {
-      // استخدام $queryRaw مع Template Literal لمنع الـ SQL Injection تلقائياً
       return prisma.$queryRaw`
         SELECT *,
           (6371 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) AS distance
@@ -67,6 +66,16 @@ export class ListingsService {
     return listing;
   }
 
+  async getMyListings(hostId: string) {
+    return prisma.listing.findMany({
+      where: { hostId },
+      include: {
+        _count: { select: { bookings: true, reviews: true } }
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async createListing(data: CreateListingInput['body'] & { images: string[] }, hostId: string) {
     return prisma.listing.create({
       data: { ...data, hostId },
@@ -74,7 +83,6 @@ export class ListingsService {
   }
 
   async updateListing(id: string, data: UpdateListingInput['body'], hostId: string) {
-    // إصلاح المهمة 5: جلب hostId فقط لتقليل الاستهلاك
     const listing = await prisma.listing.findUnique({
       where: { id },
       select: { hostId: true }

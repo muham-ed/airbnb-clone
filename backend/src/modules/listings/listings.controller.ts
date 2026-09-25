@@ -19,6 +19,17 @@ export class ListingsController {
     res.status(200).json({ status: 'success', data: listing });
   }
 
+  async getMyListings(req: AuthRequest, res: Response) {
+    if (!req.user) throw new Error('Unauthorized');
+
+    const listings = await listingsService.getMyListings(req.user.id);
+    res.status(200).json({
+      status: 'success',
+      results: listings.length,
+      data: listings,
+    });
+  }
+
   async createListing(req: AuthRequest, res: Response) {
     if (!req.user) {
       const error: any = new Error('غير مصرح لك بالقيام بهذا الإجراء');
