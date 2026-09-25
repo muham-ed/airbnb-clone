@@ -32,6 +32,8 @@ model User {
   bookings  Booking[]
   /// Reviews written by this user
   reviews   Review[]
+  /// Saved wishlists created by this user
+  wishlists Wishlist[]
 }
 
 /// Enumeration of user roles for role-based access control.
@@ -60,6 +62,16 @@ model Listing {
   latitude    Float?
   /// Geographic longitude coordinate
   longitude   Float?
+  /// Maximum number of guests allowed
+  maxGuests   Int      @default(2)
+  /// Number of bedrooms
+  bedrooms    Int      @default(1)
+  /// Number of beds
+  beds        Int      @default(1)
+  /// Number of bathrooms
+  bathrooms   Float    @default(1.0)
+  /// Mandatory cleaning fee amount
+  cleaningFee Float    @default(0)
   /// List of image URLs associated with the listing
   images      String[]
   /// List of amenities (e.g. WiFi, Pool, Air Conditioning)
@@ -76,9 +88,11 @@ model Listing {
   updatedAt   DateTime @updatedAt
 
   /// Bookings placed for this listing
-  bookings    Booking[]
+  bookings      Booking[]
   /// Reviews left by guests for this listing
-  reviews     Review[]
+  reviews       Review[]
+  /// Wishlist items featuring this listing
+  wishlistItems WishlistItem[]
 }
 
 /// Booking reservation made by a guest for a property listing.
@@ -159,4 +173,42 @@ model Review {
   booking     Booking  @relation(fields: [bookingId], references: [id])
   /// Timestamp when the review was created
   createdAt   DateTime @default(now())
+}
+
+/// Wishlist container created by a user to organize favorite listings.
+model Wishlist {
+  /// Unique identifier for the wishlist (UUID v4)
+  id        String         @id @default(uuid())
+  /// ID of the user who owns this wishlist
+  userId    String
+  /// Relation to the owner User
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  /// Name of the wishlist (e.g., "Summer Trip", "Dream Homes")
+  name      String
+  /// Wishlist items contained in this wishlist
+  items     WishlistItem[]
+  /// Timestamp when the wishlist was created
+  createdAt DateTime       @default(now())
+  /// Timestamp when the wishlist was last updated
+  updatedAt DateTime       @updatedAt
+
+  @@index([userId])
+}
+
+/// Individual listing saved inside a user's wishlist.
+model WishlistItem {
+  /// Unique identifier for the wishlist item (UUID v4)
+  id         String   @id @default(uuid())
+  /// ID of the parent wishlist
+  wishlistId String
+  /// Relation to the parent Wishlist
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id], onDelete: Cascade)
+  /// ID of the saved listing
+  listingId  String
+  /// Relation to the saved Listing
+  listing    Listing  @relation(fields: [listingId], references: [id], onDelete: Cascade)
+  /// Timestamp when the item was added
+  addedAt    DateTime @default(now())
+
+  @@unique([wishlistId, listingId])
 }
