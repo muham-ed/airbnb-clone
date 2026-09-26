@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'home/home_screen.dart';
 import 'wishlists/wishlists_screen.dart';
+import 'bookings/my_bookings_screen.dart';
 import 'profile/profile_screen.dart';
 
 class MainNavigationScreen extends StatefulWidget {
@@ -16,6 +17,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
   final List<Widget> _screens = const [
     HomeScreen(),
     WishlistsScreen(),
+    MyBookingsScreen(),
     ProfileScreen(),
   ];
 
@@ -28,6 +30,7 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFFFF385C),
         unselectedItemColor: Colors.grey,
         onTap: (index) {
@@ -43,6 +46,10 @@ class _MainNavigationScreenState extends State<MainNavigationScreen> {
           BottomNavigationBarItem(
             icon: Icon(Icons.favorite_border),
             label: 'المفضلات',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long_outlined),
+            label: 'حجوزاتي',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

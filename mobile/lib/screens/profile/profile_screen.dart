@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../auth/login_screen.dart';
+import 'edit_profile_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -21,41 +22,51 @@ class ProfileScreen extends StatelessWidget {
                   children: [
                     CircleAvatar(
                       radius: 36,
-                      backgroundImage: user.avatar != null ? NetworkImage(user.avatar!) : null,
-                      child: user.avatar == null ? const Icon(Icons.person, size: 36) : null,
+                      backgroundImage: user.avatar != null && user.avatar!.isNotEmpty ? NetworkImage(user.avatar!) : null,
+                      child: user.avatar == null || user.avatar!.isEmpty ? const Icon(Icons.person, size: 36) : null,
                     ),
                     const SizedBox(width: 16),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                        ),
-                        Text(
-                          user.email,
-                          style: const TextStyle(color: Colors.grey),
-                        ),
-                        Chip(
-                          label: Text(user.role),
-                          backgroundColor: Colors.grey[200],
-                        ),
-                      ],
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            user.name,
+                            style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            user.email,
+                            style: const TextStyle(color: Colors.grey),
+                          ),
+                          Chip(
+                            label: Text(user.role),
+                            backgroundColor: Colors.grey[200],
+                          ),
+                        ],
+                      ),
                     ),
                   ],
                 ),
                 const Divider(height: 40),
                 ListTile(
-                  leading: const Icon(Icons.settings_outlined),
-                  title: const Text('إعدادات الحساب'),
+                  leading: const Icon(Icons.edit_outlined),
+                  title: const Text('تعديل البيانات الشخصية'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    );
+                  },
                 ),
                 ListTile(
                   leading: const Icon(Icons.security_outlined),
                   title: const Text('الأمان وكلمة المرور'),
                   trailing: const Icon(Icons.chevron_right),
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const EditProfileScreen()),
+                    );
+                  },
                 ),
                 ListTile(
                   leading: const Icon(Icons.help_outline),
