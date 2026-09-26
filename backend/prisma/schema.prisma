@@ -115,6 +115,8 @@ model Booking {
   endDate     DateTime
   /// Total calculated price for the stay
   totalPrice  Float
+  /// Currency code (e.g., "usd")
+  currency    String   @default("usd")
   /// Current booking status ("pending", "confirmed", "cancelled")
   status      String   @default("pending")
   /// Timestamp when the booking was created

@@ -65,7 +65,7 @@ export class PaymentsService {
       );
     }
 
-    if (booking.status !== 'PENDING') {
+    if (booking.status.toLowerCase() !== 'pending') {
       throw new AppError(
         'هذا الحجز لا يمكن دفعه الآن',
         400,
@@ -105,7 +105,7 @@ export class PaymentsService {
         stripeSessionId: session.id,
         amount: booking.totalPrice,
         currency: booking.currency,
-        status: 'PENDING',
+        status: 'pending',
       },
     });
 
@@ -154,11 +154,11 @@ export class PaymentsService {
       await prisma.$transaction([
         prisma.payment.update({
           where: { stripeSessionId: session.id },
-          data: { status: 'SUCCEEDED' },
+          data: { status: 'succeeded' },
         }),
         prisma.booking.update({
           where: { id: bookingId },
-          data: { status: 'CONFIRMED', confirmedAt: new Date() },
+          data: { status: 'confirmed' },
         }),
       ]);
     }
