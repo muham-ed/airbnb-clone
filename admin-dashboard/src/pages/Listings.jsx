@@ -1,24 +1,37 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { Home, MapPin, DollarSign } from 'lucide-react';
+import { Home, MapPin, DollarSign, CheckCircle2, XCircle } from 'lucide-react';
 
 export default function Listings() {
   const [listings, setListings] = useState([]);
   const [loading, setLoading] = useState(true);
 
+  const fetchListings = async () => {
+    try {
+      const res = await api.get('/listings');
+      setListings(res.data.data || []);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchListings = async () => {
-      try {
-        const res = await api.get('/listings');
-        setListings(res.data.data || []);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
     fetchListings();
   }, []);
+
+  const handleToggleApprove = async (id) => {
+    try {
+      const res = await api.patch(`/listings/${id}/approve`);
+      const updated = res.data.data;
+      setListings((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, isApproved: updated.isApproved } : item))
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || 'حدث خطأ أثناء تغيير حالة القبول');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -44,6 +57,13 @@ export default function Listings() {
                       <Home size={40} />
                     </div>
                   )}
+                  <span
+                    className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-bold text-white shadow-md ${
+                      item.isApproved !== false ? 'bg-green-500' : 'bg-red-500'
+                    }`}
+                  >
+                    {item.isApproved !== false ? 'مقبول' : 'معلق'}
+                  </span>
                 </div>
                 <div className="p-5">
                   <h3 className="font-bold text-lg text-gray-900 line-clamp-1">{item.title}</h3>
@@ -56,6 +76,29 @@ export default function Listings() {
                     <span>{item.price} / ليلة</span>
                   </div>
                 </div>
+              </div>
+
+              <div className="p-5 pt-0">
+                <button
+                  onClick={() => handleToggleApprove(item.id)}
+                  className={`w-full py-2 px-4 rounded-lg font-bold text-xs flex items-center justify-center gap-2 transition-colors ${
+                    item.isApproved !== false
+                      ? 'bg-red-50 text-red-600 hover:bg-red-100'
+                      : 'bg-green-50 text-green-600 hover:bg-green-100'
+                  }`}
+                >
+                  {item.isApproved !== false ? (
+                    <>
+                      <XCircle size={16} />
+                      تعليق العقار
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 size={16} />
+                      موافقة ونشر العقار
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           ))}

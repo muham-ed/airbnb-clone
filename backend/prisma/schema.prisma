@@ -21,6 +21,8 @@ model User {
   avatar    String?
   /// Role determining user privileges (GUEST, HOST, ADMIN)
   role      UserRole @default(GUEST)
+  /// Flag indicating if user account is banned by admin
+  isBanned  Boolean  @default(false)
   /// Timestamp when the user account was created
   createdAt DateTime @default(now())
   /// Timestamp when the user account was last updated
@@ -78,6 +80,8 @@ model Listing {
   amenities   String[]
   /// Availability flag indicating whether the listing accepts bookings
   available   Boolean  @default(true)
+  /// Admin approval status flag
+  isApproved  Boolean  @default(true)
   /// ID of the host user who owns this listing
   hostId      String
   /// Relation to the host User

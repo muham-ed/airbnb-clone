@@ -17,6 +17,31 @@ export class UsersController {
     }
   }
 
+  async getAllUsers(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const users = await usersService.getAllUsers();
+      res.status(200).json({
+        status: 'success',
+        results: users.length,
+        data: { users },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async toggleBanUser(req: AuthRequest, res: Response, next: NextFunction) {
+    try {
+      const user = await usersService.toggleBanUser(req.params.id);
+      res.status(200).json({
+        status: 'success',
+        data: { user },
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   async updateMe(req: AuthRequest, res: Response, next: NextFunction) {
     try {
       const user = await usersService.updateMe(req.user!.id, req.body);

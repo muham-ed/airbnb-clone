@@ -49,6 +49,10 @@ export class AuthService {
       throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401, 'INVALID_CREDENTIALS');
     }
 
+    if (user.isBanned) {
+      throw new AppError('تم حظر هذا الحساب من قبل الإدارة', 403, 'ACCOUNT_BANNED');
+    }
+
     const isPasswordMatch = await bcrypt.compare(password, user.password);
     if (!isPasswordMatch) {
       throw new AppError('البريد الإلكتروني أو كلمة المرور غير صحيحة', 401, 'INVALID_CREDENTIALS');

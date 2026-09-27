@@ -12,7 +12,7 @@ export class ListingsService {
         SELECT *,
           (6371 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) AS distance
         FROM "Listing"
-        WHERE available = true
+        WHERE available = true AND "isApproved" = true
         GROUP BY id
         HAVING (6371 * acos(cos(radians(${lat})) * cos(radians(latitude)) * cos(radians(longitude) - radians(${lng})) + sin(radians(${lat})) * sin(radians(latitude)))) <= ${radius}
         ORDER BY distance ASC
@@ -39,6 +39,7 @@ export class ListingsService {
     return prisma.listing.findMany({
       where: {
         available: true,
+        isApproved: true,
         ...availabilityFilter,
         price: {
           lte: maxPrice,
@@ -73,6 +74,16 @@ export class ListingsService {
         _count: { select: { bookings: true, reviews: true } }
       },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async toggleApproveListing(id: string) {
+    const listing = await prisma.listing.findUnique({ where: { id } });
+    if (!listing) throw new AppError('العقار غير موجود', 404, 'NOT_FOUND');
+
+    return prisma.listing.update({
+      where: { id },
+      data: { isApproved: !listing.isApproved },
     });
   }
 

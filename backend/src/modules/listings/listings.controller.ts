@@ -30,6 +30,11 @@ export class ListingsController {
     });
   }
 
+  async toggleApproveListing(req: AuthRequest, res: Response) {
+    const listing = await listingsService.toggleApproveListing(req.params.id);
+    res.status(200).json({ status: 'success', data: listing });
+  }
+
   async createListing(req: AuthRequest, res: Response) {
     if (!req.user) {
       const error: any = new Error('غير مصرح لك بالقيام بهذا الإجراء');

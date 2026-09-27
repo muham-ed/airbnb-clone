@@ -13,6 +13,7 @@ export class UsersService {
         name: true,
         avatar: true,
         role: true,
+        isBanned: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -30,6 +31,40 @@ export class UsersService {
     }
 
     return user;
+  }
+
+  async getAllUsers() {
+    return prisma.user.findMany({
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        role: true,
+        isBanned: true,
+        createdAt: true,
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async toggleBanUser(userId: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) {
+      throw new AppError('المستخدم غير موجود', 404, 'USER_NOT_FOUND');
+    }
+
+    return prisma.user.update({
+      where: { id: userId },
+      data: { isBanned: !user.isBanned },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        isBanned: true,
+      },
+    });
   }
 
   async updateMe(userId: string, data: UpdateProfileInput['body']) {
@@ -71,6 +106,7 @@ export class UsersService {
         name: true,
         avatar: true,
         role: true,
+        isBanned: true,
         createdAt: true,
         updatedAt: true,
       },

@@ -17,6 +17,9 @@ router.use(protect);
 // مسار عقاراتي الخاصة بالمضيف (يجب وضعه قبل :id)
 router.get('/my-listings', restrictTo('HOST'), controller.getMyListings);
 
+// قبول/رفض عقار بواسطة الأدمن
+router.patch('/:id/approve', restrictTo('ADMIN'), controller.toggleApproveListing);
+
 // مسار جلب تفاصيل عقار بالـ id
 router.get('/:id', controller.getListing);
 

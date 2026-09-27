@@ -1,25 +1,43 @@
 import { useState, useEffect } from 'react';
 import api from '../services/api';
-import { UserCheck, Shield } from 'lucide-react';
+import { UserCheck, UserX, Shield, Ban } from 'lucide-react';
 
 export default function Users() {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // جلب بيانات الملف الشخصي كاختبار أولي أو مستخدمي النظام
-    const loadData = async () => {
+  const fetchUsers = async () => {
+    try {
+      const res = await api.get('/users');
+      setUsers(res.data.data.users || []);
+    } catch (err) {
+      console.error(err);
+      // Fallback to /users/me
       try {
-        const res = await api.get('/users/me');
-        setUsers([res.data.data.user]);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
+        const meRes = await api.get('/users/me');
+        setUsers([meRes.data.data.user]);
+      } catch (e) {
+        console.error(e);
       }
-    };
-    loadData();
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchUsers();
   }, []);
+
+  const handleToggleBan = async (userId) => {
+    try {
+      await api.patch(`/users/${userId}/ban`);
+      setUsers((prev) =>
+        prev.map((u) => (u.id === userId ? { ...u, isBanned: !u.isBanned } : u))
+      );
+    } catch (err) {
+      alert(err.response?.data?.message || 'حدث خطأ أثناء تعديل حالة الحساب');
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -39,14 +57,15 @@ export default function Users() {
                 <th className="px-6 py-4">البريد الإلكتروني</th>
                 <th className="px-6 py-4">الرتبة / الدور</th>
                 <th className="px-6 py-4">الحالة</th>
+                <th className="px-6 py-4">الإجراءات</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
-              {users.map((u, idx) => (
-                <tr key={idx} className="hover:bg-gray-50">
+              {users.map((u) => (
+                <tr key={u.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 font-bold text-gray-900 flex items-center gap-3">
                     <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-600">
-                      {u.name?.[0]}
+                      {u.name?.[0] || 'U'}
                     </div>
                     {u.name}
                   </td>
@@ -58,10 +77,30 @@ export default function Users() {
                     </span>
                   </td>
                   <td className="px-6 py-4">
-                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600">
-                      <UserCheck size={12} />
-                      نشط
-                    </span>
+                    {u.isBanned ? (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-red-50 text-red-600">
+                        <UserX size={12} />
+                        محظور
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-green-50 text-green-600">
+                        <UserCheck size={12} />
+                        نشط
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleToggleBan(u.id)}
+                      className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                        u.isBanned
+                          ? 'bg-green-100 text-green-700 hover:bg-green-200'
+                          : 'bg-red-100 text-red-700 hover:bg-red-200'
+                      }`}
+                    >
+                      <Ban size={14} />
+                      {u.isBanned ? 'إلغاء الحظر' : 'حظر الحساب'}
+                    </button>
                   </td>
                 </tr>
               ))}
