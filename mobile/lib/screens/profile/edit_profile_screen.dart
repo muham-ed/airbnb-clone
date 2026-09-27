@@ -57,11 +57,15 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
       await ApiService.put(ApiConfig.userProfile, body);
 
       if (mounted) {
-        await Provider.of<AuthProvider>(context, listen: false).fetchProfile();
-        ScaffoldMessenger.of(context).showSnackBar(
+        final authProvider = Provider.of<AuthProvider>(context, listen: false);
+        final messenger = ScaffoldMessenger.of(context);
+        final navigator = Navigator.of(context);
+
+        await authProvider.fetchProfile();
+        messenger.showSnackBar(
           const SnackBar(content: Text('تم تحديث البيانات الشخصية بنجاح')),
         );
-        Navigator.of(context).pop();
+        navigator.pop();
       }
     } catch (e) {
       if (mounted) {
