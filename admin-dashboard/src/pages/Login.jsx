@@ -30,9 +30,7 @@ export default function Login() {
     <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8">
         <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-primary rounded-2xl flex items-center justify-center text-white font-bold text-3xl mx-auto mb-3">
-            A
-          </div>
+          <img src="/logo.png" alt="Airbnb Logo" className="w-16 h-16 rounded-2xl object-cover shadow-md mx-auto mb-3" />
           <h2 className="text-2xl font-bold text-gray-900">تسجيل دخول الأدمن</h2>
           <p className="text-gray-500 text-sm mt-1">قم بتسجيل الدخول للوصول للوحة التحكم</p>
         </div>

@@ -16,9 +16,7 @@ export default function Sidebar() {
     <div className="w-64 bg-white border-l border-gray-200 min-h-screen flex flex-col justify-between p-4">
       <div>
         <div className="flex items-center gap-3 px-4 py-3 mb-6">
-          <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center text-white font-bold text-xl">
-            A
-          </div>
+          <img src="/logo.png" alt="Airbnb Logo" className="w-10 h-10 rounded-xl object-cover shadow-sm" />
           <div>
             <h1 className="font-bold text-lg text-gray-900">Airbnb Admin</h1>
             <p className="text-xs text-gray-500">لوحة التحكم للإدارة</p>

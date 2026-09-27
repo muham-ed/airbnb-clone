@@ -30,15 +30,28 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      backgroundColor: Color(0xFFFF385C), // Airbnb Coral Accent
+    return Scaffold(
+      backgroundColor: const Color(0xFF0D1B3E), // Dark Navy Blue from logo background
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.house_rounded, size: 90, color: Colors.white),
-            SizedBox(height: 16),
-            Text(
+            ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Image.asset(
+                'assets/logo.png',
+                width: 120,
+                height: 120,
+                fit: BoxFit.cover,
+                errorBuilder: (c, e, s) => const Icon(
+                  Icons.house_rounded,
+                  size: 90,
+                  color: Colors.white,
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
               'Airbnb Clone',
               style: TextStyle(
                 color: Colors.white,
@@ -46,8 +59,8 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            SizedBox(height: 24),
-            CircularProgressIndicator(color: Colors.white),
+            const SizedBox(height: 24),
+            const CircularProgressIndicator(color: Color(0xFFFF385C)),
           ],
         ),
       ),
