@@ -142,7 +142,17 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
                                                 color: Color(0xFFFF385C),
                                               ),
                                             ),
-                                            _buildStatusChip(booking.status),
+                                            Row(
+                                              children: [
+                                                _buildStatusChip(booking.status),
+                                                const SizedBox(width: 4),
+                                                IconButton(
+                                                  icon: const Icon(Icons.receipt_outlined, color: Colors.blue, size: 20),
+                                                  tooltip: 'عرض الفاتورة',
+                                                  onPressed: () => _showInvoiceDialog(context, booking),
+                                                ),
+                                              ],
+                                            ),
                                           ],
                                         ),
                                       ],
@@ -185,6 +195,98 @@ class _MyBookingsScreenState extends State<MyBookingsScreen> {
       backgroundColor: color,
       padding: EdgeInsets.zero,
       visualDensity: VisualDensity.compact,
+    );
+  }
+
+  void _showInvoiceDialog(BuildContext context, dynamic booking) {
+    final dateFormat = intl.DateFormat('yyyy/MM/dd');
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        contentPadding: const EdgeInsets.all(20),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  'فاتورة حجز رسمية',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Color(0xFF0D1B3E)),
+                ),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFF385C).withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: const Text(
+                    'Airbnb Clone',
+                    style: TextStyle(color: Color(0xFFFF385C), fontWeight: FontWeight.bold, fontSize: 12),
+                  ),
+                ),
+              ],
+            ),
+            const Divider(height: 24),
+            Text('رقم المرجع: #${booking.id.toString().substring(0, 8).toUpperCase()}', style: const TextStyle(color: Colors.grey, fontSize: 12)),
+            const SizedBox(height: 8),
+            Text('العقار: ${booking.listingTitle}', style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+            const SizedBox(height: 6),
+            Text('تاريخ الوصول: ${dateFormat.format(booking.startDate)}'),
+            Text('تاريخ المغادرة: ${dateFormat.format(booking.endDate)}'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.grey[100],
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('المبلغ الإجمالي المدفوع:', style: TextStyle(fontWeight: FontWeight.bold)),
+                  Text(
+                    '\$${booking.totalPrice.toStringAsFixed(2)}',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Center(
+              child: Column(
+                children: [
+                  Icon(Icons.qr_code_2, size: 80, color: Colors.grey[700]),
+                  const SizedBox(height: 4),
+                  const Text('كود التحقق من الحجز عند الوصول', style: TextStyle(fontSize: 11, color: Colors.grey)),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('إغلاق'),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Navigator.pop(ctx);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('تم جاري تنزيل الفاتورة بصيغة PDF...')),
+              );
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFFF385C),
+              foregroundColor: Colors.white,
+            ),
+            icon: const Icon(Icons.download, size: 18),
+            label: const Text('تحميل PDF'),
+          ),
+        ],
+      ),
     );
   }
 }

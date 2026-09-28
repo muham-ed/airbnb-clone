@@ -14,8 +14,18 @@ import wishlistRoutes from './modules/wishlists/wishlists.routes';
 
 const app = express();
 
-app.use(helmet());
-app.use(cors());
+// إعداد Helmet لمنع حجب الموارد عبر النطاقات المختلفة (CORS)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' },
+}));
+
+// إعداد CORS للسماح لجميع واجهات Chrome (Flutter Web & Admin Dashboard)
+app.use(cors({
+  origin: true,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+}));
 
 // استثناء الـ Webhook من الـ JSON body parser والـ Rate Limit
 app.use((req, res, next) => {
