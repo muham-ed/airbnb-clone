@@ -109,7 +109,7 @@ class _AddListingScreenState extends State<AddListingScreen> {
         child: Form(
           key: _formKey,
           child: Column(
-            crossAxisAlignment: CrossAlignment.start,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text(
                 'معلومات العقار الأساسية',

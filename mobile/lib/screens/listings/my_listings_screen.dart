@@ -88,7 +88,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       clipBehavior: Clip.antiAlias,
                       child: Column(
-                        crossAxisAlignment: CrossAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Stack(
                             children: [
@@ -125,7 +125,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: Column(
-                              crossAxisAlignment: CrossAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   item.title,
@@ -156,7 +156,7 @@ class _MyListingsScreenState extends State<MyListingsScreen> {
                                             Navigator.push(
                                               context,
                                               MaterialPageRoute(
-                                                builder: (_) => ListingDetailScreen(listingId: item.id),
+                                                builder: (_) => ListingDetailScreen(listing: item),
                                               ),
                                             );
                                           },

@@ -14,6 +14,7 @@ class ListingModel {
   final List<String> images;
   final List<String> amenities;
   final bool available;
+  final bool isApproved;
   final String hostId;
   final String? hostName;
   final String? hostAvatar;
@@ -34,6 +35,7 @@ class ListingModel {
     required this.images,
     required this.amenities,
     this.available = true,
+    this.isApproved = true,
     required this.hostId,
     this.hostName,
     this.hostAvatar,
@@ -59,6 +61,7 @@ class ListingModel {
       images: imagesList,
       amenities: amenitiesList,
       available: json['available'] ?? true,
+      isApproved: json['isApproved'] ?? true,
       hostId: json['hostId'] ?? '',
       hostName: json['host']?['name'],
       hostAvatar: json['host']?['avatar'],

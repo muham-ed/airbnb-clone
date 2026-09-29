@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
+import 'auth/login_screen.dart';
 import 'main_navigation_screen.dart';
 
 class SplashScreen extends StatefulWidget {
@@ -34,13 +35,13 @@ class _SplashScreenState extends State<SplashScreen> {
           MaterialPageRoute(builder: (_) => const LoginScreen()),
         );
       }
-                    }
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D1B3E), // Dark Navy Blue from logo background
+      backgroundColor: const Color(0xFF0D1B3E),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
