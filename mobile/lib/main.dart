@@ -1,3 +1,12 @@
+/**
+ * StayLock Mobile Application (Flutter Engine)
+ * --------------------------------------------------
+ * Author: Mohamed Alaa El-Din
+ * Fingerprint: STAYLOCK-MOBILE-AUTH-MOHAMED-ALAA-2026
+ * Repository: https://github.com/muham-ed/airbnb-clone
+ * Copyright (c) 2026 Mohamed Alaa El-Din. All Rights Reserved.
+ */
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -23,7 +32,7 @@ class AirbnbApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => BookingProvider()),
       ],
       child: MaterialApp(
-        title: 'Airbnb Clone',
+        title: 'StayLock (Airbnb Clone)',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

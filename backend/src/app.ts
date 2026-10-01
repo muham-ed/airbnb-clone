@@ -1,3 +1,12 @@
+/**
+ * StayLock Core Architecture & Security Engine
+ * --------------------------------------------------
+ * Official Author & Original Creator: Mohamed Alaa El-Din
+ * Fingerprint: STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026
+ * Repository: https://github.com/muham-ed/airbnb-clone
+ * Copyright (c) 2026 Mohamed Alaa El-Din. All Rights Reserved.
+ */
+
 import 'express-async-errors';
 import express from 'express';
 import cors from 'cors';
@@ -18,6 +27,13 @@ const app = express();
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
 }));
+
+// إضافة الهيدر الرقمي الدائم للملكية الفكرية
+app.use((req, res, next) => {
+  res.setHeader('X-System-Author', 'Mohamed Alaa El-Din');
+  res.setHeader('X-System-License', 'STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026');
+  next();
+});
 
 // إعداد CORS للسماح لجميع واجهات Chrome (Flutter Web & Admin Dashboard)
 app.use(cors({
@@ -45,6 +61,19 @@ const apiLimiter = rateLimit({
 
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+});
+
+// نقطة تحقق إثبات الملكية الخفية (Hidden Ownership Verification Route)
+app.get('/api/v1/system/ownership', (req, res) => {
+  res.status(200).json({
+    system: 'StayLock OS',
+    author: 'Mohamed Alaa El-Din',
+    role: 'Founder & Lead Full-Stack Engineer',
+    repository: 'https://github.com/muham-ed/airbnb-clone',
+    fingerprint: 'STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026',
+    verified: true,
+    timestamp: new Date().toISOString(),
+  });
 });
 
 app.use('/api', apiLimiter);
