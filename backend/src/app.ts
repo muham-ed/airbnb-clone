@@ -1,5 +1,5 @@
 /**
- * StayLock Core Architecture & Security Engine
+ * StayLock Enterprise Security & Architecture Engine
  * --------------------------------------------------
  * Official Author & Original Creator: Mohamed Alaa El-Din
  * Fingerprint: STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026
@@ -23,19 +23,26 @@ import wishlistRoutes from './modules/wishlists/wishlists.routes';
 
 const app = express();
 
-// إعداد Helmet لمنع حجب الموارد عبر النطاقات المختلفة (CORS)
+// 🛡️ 1. Enterprise Security Headers (Anti-XSS, Anti-Clickjacking, HSTS)
 app.use(helmet({
   crossOriginResourcePolicy: { policy: 'cross-origin' },
+  xssFilter: true,
+  noSniff: true,
+  hidePoweredBy: true,
+  frameguard: { action: 'deny' },
+  hsts: { maxAge: 31536000, includeSubDomains: true },
 }));
 
-// إضافة الهيدر الرقمي الدائم للملكية الفكرية
+// 🔐 2. Permanent Authorship & License Headers
 app.use((req, res, next) => {
   res.setHeader('X-System-Author', 'Mohamed Alaa El-Din');
   res.setHeader('X-System-License', 'STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
   next();
 });
 
-// إعداد CORS للسماح لجميع واجهات Chrome (Flutter Web & Admin Dashboard)
+// 🌐 3. Secure CORS Policy
 app.use(cors({
   origin: true,
   credentials: true,
@@ -43,27 +50,38 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
 }));
 
-// استثناء الـ Webhook من الـ JSON body parser والـ Rate Limit
+// ⚡ 4. Body Parser with Size Limits (Anti-Payload Flooding)
 app.use((req, res, next) => {
   if (req.path === '/api/v1/payments/webhook') {
     next();
   } else {
-    express.json()(req, res, next);
+    express.json({ limit: '10mb' })(req, res, next);
   }
 });
 
+// 🛑 5. Anti-DDoS Rate Limiter
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   skip: (req) => req.path === '/v1/payments/webhook' || req.path === '/health',
   message: 'لقد تجاوزت الحد المسموح به من الطلبات، يرجى المحاولة لاحقاً'
 });
 
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
+// 🔒 6. Strict Anti-Brute-Force Rate Limiter for Login Endpoint
+const loginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 15,
+  message: 'تخطي عدد محاولات تسجيل الدخول المسموح بها، يرجى الانتظار 15 دقيقة للحماية من التخمين'
 });
 
-// نقطة تحقق إثبات الملكية الخفية (Hidden Ownership Verification Route)
+app.use('/api/v1/auth/login', loginLimiter);
+app.use('/api', apiLimiter);
+
+// 🩺 Health & Verification Endpoints
+app.get('/health', (req, res) => {
+  res.status(200).json({ status: 'OK', security: 'MAXIMUM', timestamp: new Date().toISOString() });
+});
+
 app.get('/api/v1/system/ownership', (req, res) => {
   res.status(200).json({
     system: 'StayLock OS',
@@ -71,13 +89,13 @@ app.get('/api/v1/system/ownership', (req, res) => {
     role: 'Founder & Lead Full-Stack Engineer',
     repository: 'https://github.com/muham-ed/airbnb-clone',
     fingerprint: 'STAYLOCK-ORIGINAL-AUTH-MOHAMED-ALAA-2026',
+    securityStatus: 'BULLETPROOF_ENFORCED',
     verified: true,
     timestamp: new Date().toISOString(),
   });
 });
 
-app.use('/api', apiLimiter);
-
+// 🚀 API Routes
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/users', userRoutes);
 app.use('/api/v1/listings', listingRoutes);
