@@ -1,4 +1,4 @@
-# 🏡 Airbnb Clone — Production-Ready Full-Stack Platform & Smart Booking OS
+# 🏡 StayLock (Airbnb Clone) — Smart Property Booking OS & Production-Ready MVP
 
 [![Backend Build](https://img.shields.io/badge/Backend-Node.js%20%7C%20TypeScript%20%7C%20Express-blue)](https://github.com/muham-ed/airbnb-clone)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20Prisma%20ORM-green)](https://github.com/muham-ed/airbnb-clone)
@@ -7,20 +7,23 @@
 [![Admin Dashboard](https://img.shields.io/badge/Admin-React%2018%20%7C%20Vite%20%7C%20Tailwind-purple)](https://github.com/muham-ed/airbnb-clone)
 [![Tests](https://img.shields.io/badge/Tests-Vitest%20%7C%20Passed-brightgreen)](https://github.com/muham-ed/airbnb-clone)
 
-منصة متكاملة ومحاكاة لموقع وتطبيق **Airbnb** مصممة بمعايير هندسية متقدمة (Modular Monolith) ومخصصة للعروض التنافسية والإنتاج الفعلي.
+منصة **StayLock** (المعروفة بـ Airbnb Clone) هى منصة متكاملة لنظام حجز العقارات والضيافة الذكية مصممة بمعمارية **Modular Monolith (MVP)** عالية الصلابة ومخصصة للعروض التنافسية والإنتاج الفعلي.
 
 ---
 
 ## 🌟 أبرز المميزات ونقاط الإبهار الهندسي (Key Features & Highlights)
 
 ### 1. 🛡️ الوقاية التامة من الحجز المزدوج (Database-Level Overbooking Prevention)
-تم استخدام **PostgreSQL Exclusion Constraints** لتطبيق حماية هندسية صارمة على مستوى محرك قاعدة البيانات نفسه لمنع تداخل التواريخ لنفس العقار حتى في حالات الضغط المرتفع والطلبات المتزامنة:
+تم استخدام **PostgreSQL Exclusion Constraints** مع ملحق `btree_gist` لتطبيق حماية هندسية صارمة على مستوى محرك قاعدة البيانات نفسه لمنع تداخل التواريخ لنفس العقار حتى في حالات الضغط المرتفع والطلبات المتزامنة:
 ```sql
-ALTER TABLE "Booking" ADD CONSTRAINT "no_overlapping_bookings"
+CREATE EXTENSION IF NOT EXISTS btree_gist;
+
+ALTER TABLE "Booking"
+ADD CONSTRAINT no_overlapping_bookings
 EXCLUDE USING gist (
   "listingId" WITH =,
-  tstzrange("startDate", "endDate", '[)') WITH &&
-) WHERE (status IN ('pending', 'confirmed'));
+  tsrange("startDate", "endDate", '[)') WITH &&
+) WHERE (status IN ('PENDING', 'CONFIRMED'));
 ```
 
 ### 2. 📱 تطبيق جوال متكامل بـ Flutter (Mobile App - Guest & Host Modes)
