@@ -3,21 +3,31 @@ import 'package:flutter/foundation.dart';
 class ApiConfig {
   /// Base URL for all API requests.
   ///
-  /// - Web (Chrome): uses localhost, since the browser runs on the same machine.
-  /// - Android (real device): uses the laptop's LAN IP so the phone can reach
-  ///   the backend over Wi-Fi.
-  /// - Android Emulator: uses 10.0.2.2 which maps to the host's localhost.
+  /// Priority:
+  /// 1. If running in Chrome (web) → uses `localhost`, since the browser
+  ///    runs on the same machine as the backend.
+  /// 2. Otherwise (real Android device / emulator) → uses `API_HOST`
+  ///    which is set at build time via `--dart-define=API_HOST=...`.
+  ///
+  /// Build examples:
+  ///   flutter build apk --release --dart-define=API_HOST=192.168.137.1
+  ///   flutter build apk --release --dart-define=API_HOST=192.168.1.19
+  ///
+  /// If you don't pass `--dart-define`, the default below is used.
+  static const String _defaultHost = '192.168.1.19';
+  static const String _apiHost =
+      String.fromEnvironment('API_HOST', defaultValue: _defaultHost);
+  static const int _apiPort =
+      int.fromEnvironment('API_PORT', defaultValue: 5000);
+
   static String get baseUrl {
+    // Web: backend runs on the same machine as the browser
     if (kIsWeb) {
-      // Running in Chrome on the laptop itself
-      return 'http://localhost:5000/api/v1';
+      return 'http://localhost:$_apiPort/api/v1';
     }
 
-    // Real Android device on the same Wi-Fi network as the laptop
-    return 'http://192.168.1.19:5000/api/v1';
-
-    // If you ever switch back to the Android Emulator, use this instead:
-    // return 'http://10.0.2.2:5000/api/v1';
+    // Real Android device / emulator: use the configured host
+    return 'http://$_apiHost:$_apiPort/api/v1';
   }
 
   // ============ Auth ============
