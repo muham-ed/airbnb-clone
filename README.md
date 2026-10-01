@@ -1,4 +1,4 @@
-# 🏡 StayLock (Airbnb Clone) — Smart Property Booking OS & Production-Ready MVP
+# 🏡 StayLock (Airbnb Clone) — Smart Property Booking OS & Functional MVP
 
 [![Backend Build](https://img.shields.io/badge/Backend-Node.js%20%7C%20TypeScript%20%7C%20Express-blue)](https://github.com/muham-ed/airbnb-clone)
 [![Database](https://img.shields.io/badge/Database-PostgreSQL%20%7C%20Prisma%20ORM-green)](https://github.com/muham-ed/airbnb-clone)
@@ -7,7 +7,7 @@
 [![Admin Dashboard](https://img.shields.io/badge/Admin-React%2018%20%7C%20Vite%20%7C%20Tailwind-purple)](https://github.com/muham-ed/airbnb-clone)
 [![Tests](https://img.shields.io/badge/Tests-Vitest%20%7C%20Passed-brightgreen)](https://github.com/muham-ed/airbnb-clone)
 
-منصة **StayLock** (المعروفة بـ Airbnb Clone) هى منصة متكاملة لنظام حجز العقارات والضيافة الذكية مصممة بمعمارية **Modular Monolith (MVP)** عالية الصلابة ومخصصة للعروض التنافسية والإنتاج الفعلي.
+منصة **StayLock** (المعروفة بـ Airbnb Clone) هى منصة متكاملة لنظام حجز العقارات والضيافة الذكية مصممة بمعمارية **Modular Monolith (Functional MVP)** للجودة الهندسية والموثوقية والمخصصة للعروض التنافسية.
 
 ---
 
