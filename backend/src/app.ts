@@ -54,6 +54,18 @@ const loginLimiter = rateLimit({
 app.use('/api/v1/auth/login', loginLimiter);
 app.use('/api', apiLimiter);
 
+// Root Welcome Endpoint
+app.get('/', (req, res) => {
+  res.status(200).json({
+    system: 'StayLock Smart Property Booking API',
+    status: 'ONLINE',
+    version: '1.0.0',
+    documentation: 'https://github.com/muham-ed/airbnb-clone/blob/main/docs/API.md',
+    healthCheck: '/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Health Endpoint
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'OK', timestamp: new Date().toISOString() });
