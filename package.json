@@ -1,0 +1,11 @@
+{
+  "name": "staylock-monorepo-root",
+  "version": "1.0.0",
+  "private": true,
+  "description": "StayLock Monorepo Root Manager for Render and Deployment",
+  "scripts": {
+    "build": "cd backend && npm install --legacy-peer-deps && npm run prisma:generate && npm run build",
+    "start": "cd backend && npm start",
+    "dev": "cd backend && npm run dev"
+  }
+}
