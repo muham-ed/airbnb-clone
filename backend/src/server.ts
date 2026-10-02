@@ -15,17 +15,18 @@ const logger = pino({
 const PORT = process.env.PORT || 5000;
 
 async function startServer() {
-  await connectDB();
-
-  // Listen on 0.0.0.0 so the server accepts connections from:
-  // - localhost (the laptop itself)
-  // - LAN (phones, tablets on the same Wi-Fi)
-  // - Docker networks
   const server = app.listen(Number(PORT), '0.0.0.0', () => {
-    logger.info(`🚀 Server running on http://localhost:${PORT}`);
-    logger.info(`📡 Listening on all network interfaces (0.0.0.0:${PORT})`);
-    logger.info(`📱 Accessible from phone at: http://192.168.1.19:${PORT}`);
+    logger.info(`🚀 Server running on port ${PORT}`);
+    logger.info(`📡 Listening on 0.0.0.0:${PORT}`);
   });
+
+  // Connect to database gracefully
+  try {
+    await connectDB();
+    logger.info('🐘 Database connected successfully!');
+  } catch (err: any) {
+    logger.error('⚠️ Database connection warning:', err.message || err);
+  }
 
   const shutdown = async (signal: string) => {
     logger.info(`${signal} received. Shutting down gracefully...`);
