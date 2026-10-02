@@ -1,19 +1,10 @@
 import 'package:flutter/foundation.dart';
 
 class ApiConfig {
-  /// Base URL for all API requests.
+  /// Base URL configuration
   ///
-  /// Priority:
-  /// 1. If running in Chrome (web) → uses `localhost`, since the browser
-  ///    runs on the same machine as the backend.
-  /// 2. Otherwise (real Android device / emulator) → uses `API_HOST`
-  ///    which is set at build time via `--dart-define=API_HOST=...`.
-  ///
-  /// Build examples:
-  ///   flutter build apk --release --dart-define=API_HOST=192.168.137.1
-  ///   flutter build apk --release --dart-define=API_HOST=192.168.1.19
-  ///
-  /// If you don't pass `--dart-define`, the default below is used.
+  /// Pass --dart-define=API_HOST=staylock-api.onrender.com for HTTPS production,
+  /// or --dart-define=API_HOST=192.168.1.19 for local Wi-Fi testing.
   static const String _defaultHost = '192.168.1.19';
   static const String _apiHost =
       String.fromEnvironment('API_HOST', defaultValue: _defaultHost);
@@ -21,12 +12,22 @@ class ApiConfig {
       int.fromEnvironment('API_PORT', defaultValue: 5000);
 
   static String get baseUrl {
-    // Web: backend runs on the same machine as the browser
     if (kIsWeb) {
       return 'http://localhost:$_apiPort/api/v1';
     }
 
-    // Real Android device / emulator: use the configured host
+    // Handle full HTTPS cloud URLs (e.g. Render, ngrok, custom domain)
+    if (_apiHost.contains('render.com') ||
+        _apiHost.contains('ngrok') ||
+        _apiHost.startsWith('https://') ||
+        _apiHost.startsWith('http://')) {
+      if (_apiHost.startsWith('http://') || _apiHost.startsWith('https://')) {
+        return '$_apiHost/api/v1';
+      }
+      return 'https://$_apiHost/api/v1';
+    }
+
+    // Local IP address / LAN Wi-Fi
     return 'http://$_apiHost:$_apiPort/api/v1';
   }
 
