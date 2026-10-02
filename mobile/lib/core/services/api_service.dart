@@ -13,6 +13,8 @@ class ApiService {
     return {
       'Content-Type': 'application/json',
       'Accept': 'application/json',
+      'Bypass-Tunnel-Reminder': 'true',
+      'User-Agent': 'StayLockMobile',
       if (token != null) 'Authorization': 'Bearer $token',
     };
   }
